@@ -7,7 +7,7 @@ const client = axios.create({
   baseURL: `${process.env.CIRCLECI_HOST}/api/`,
   headers: {
     'Content-Type': 'application/json',
-    'Circle-Token': `${process.env.CIRCLECI_SERVER_TOKEN}`,
+    'Circle-Token': `${process.env.CIRCLECI_TOKEN}`,
     'Accept': 'application/json',
   },
   responseType: 'json',
