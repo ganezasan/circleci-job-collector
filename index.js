@@ -1,3 +1,4 @@
+import arg from 'arg';
 import axios from 'axios';
 import * as fs from 'fs';
 import dotenv from 'dotenv';
@@ -15,25 +16,26 @@ const client = axios.create({
 
 const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
 
-const fetchAllBuilds = async (msec=100) => {
+const fetchAllJobs = async ({ msec=100, maxJobNumber }) => {
   let offset = 0;
   const builds = [];
-  const limit = 100;
+  const limit = maxJobNumber < 100 ? maxJobNumber : 100;
   while (true) {
     const option = {
       params: {
         offset,
-        limit,
+        limit: maxJobNumber - offset < limit ? maxJobNumber - offset : limit,
       }
     };
 
     const recentBuilds = await client.get('v1/admin/recent-builds', option);
-    builds.push(...recentBuilds.data)
-    if (recentBuilds.data.length < limit) {
+    builds.push(...recentBuilds.data);
+    offset += recentBuilds.data.length;
+    console.log(offset);
+
+    if (recentBuilds.data.length < limit || offset >= maxJobNumber) {
       break;
     }
-    offset += limit;
-    console.log(offset);
     await sleep(msec);
   }
   return builds;
@@ -55,12 +57,31 @@ const fetchAllJobDetails = async (recentBuilds, msec=100) => {
   return jobDetails;
 }
 
+const parseArgumentsIntoOptions = rawArgs => {
+  const excludeNodeAndCommandPath = 2;
+  const args = arg(
+    {
+      '--limit': Number,
+      '-l': '--limit',
+    },
+    {
+      argv: rawArgs.slice(excludeNodeAndCommandPath),
+      permissive: true,
+    }
+  );
+  return {
+    limit: args['--limit'] || 1000,
+  };
+};
+
 (async () => {
+  const { limit } = parseArgumentsIntoOptions(process.argv);
+
   if (!['CIRCLECI_HOST', 'CIRCLECI_TOKEN'].every(key => Object.keys(process.env).includes(key))) {
     throw new Error('Please set CIRCLECI_HOST and CIRCLECI_TOKEN as environment valiable');
   }
 
-  const recentBuilds = await fetchAllBuilds(); 
+  const recentBuilds = await fetchAllJobs({maxJobNumber: limit}); 
   const jobDetails = await fetchAllJobDetails(recentBuilds);
   console.log(`The number of jobs: ${jobDetails.length}`);
   fs.writeFileSync('./jobs.json', JSON.stringify(jobDetails.map(j => j.data)));

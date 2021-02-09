@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "babel index.js | node --unhandled-rejections=strict",
+    "start": "babel-node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/ganezasan/circleci-job-collector#readme",
   "dependencies": {
+    "@babel/node": "^7.12.13",
+    "arg": "^5.0.0",
     "axios": "^0.21.1",
     "dotenv": "^8.2.0"
   },

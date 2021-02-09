@@ -20,8 +20,22 @@ CIRCLECI_TOKEN=<CircleCI API token created by server admin user>
 
 # run
 
-This script exports job data to `jobs.json` file.
+This script exports job data to `jobs.json` file. The default limit of job count is 1000.
 
 ```
 $ npm start
+```
+
+You can specify the limit of job count.
+
+```
+$ npm start -- --limit=100
+or 
+$ npm start -- -l=100
+```
+
+## run in docker 
+
+```
+sudo docker run -it --rm -v `pwd`:/tmp node:12.18.4 bash -c 'cd /tmp && npm cache verify && npm install && npm start'
 ```
