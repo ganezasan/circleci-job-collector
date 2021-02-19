@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": "14.13.0"
+  },
   "scripts": {
     "start": "babel-node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,14 +21,14 @@
   },
   "homepage": "https://github.com/ganezasan/circleci-job-collector#readme",
   "dependencies": {
-    "@babel/node": "^7.12.13",
     "arg": "^5.0.0",
     "axios": "^0.21.1",
+    "dayjs": "^1.10.4",
     "dotenv": "^8.2.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.12.13",
-    "@babel/core": "^7.12.13",
-    "@babel/preset-env": "^7.12.13"
+    "@babel/core": "^7.12.16",
+    "@babel/node": "^7.12.16",
+    "@babel/preset-env": "^7.12.16"
   }
 }
