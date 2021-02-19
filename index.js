@@ -4,36 +4,32 @@ import * as fs from 'fs';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const client = axios.create({
-  baseURL: `${process.env.CIRCLECI_HOST}/api/`,
-  headers: {
-    'Content-Type': 'application/json',
-    'Circle-Token': `${process.env.CIRCLECI_TOKEN}`,
-    'Accept': 'application/json',
-  },
-  responseType: 'json',
-});
-
 const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
+const ganerateEndpoint = (isServer, projectSlug) => {
+  if (projectSlug) return `v1.1/project/${projectSlug}`;
+  return isServer ? 'v1/admin/recent-builds' : 'v1.1/recent-builds';
+}
 
-const fetchAllJobs = async ({ msec=100, maxJobNumber }) => {
-  let offset = 0;
+const fetchAllJobs = async ({ client, msec=100, maxJobNumber, defaultOffset = 0, isServer, projectSlug }) => {
+  const endpoint = ganerateEndpoint(isServer, projectSlug);
+
+  let offset = defaultOffset;
   const builds = [];
   const limit = maxJobNumber < 100 ? maxJobNumber : 100;
   while (true) {
     const option = {
       params: {
         offset,
-        limit: maxJobNumber - offset < limit ? maxJobNumber - offset : limit,
+        limit: maxJobNumber - (defaultOffset - offset) < limit ? maxJobNumber - (defaultOffset - offset) : limit,
       }
     };
 
-    const recentBuilds = await client.get('v1/admin/recent-builds', option);
+    const recentBuilds = await client.get(endpoint, option);
     builds.push(...recentBuilds.data);
     offset += recentBuilds.data.length;
     console.log(offset);
 
-    if (recentBuilds.data.length < limit || offset >= maxJobNumber) {
+    if (recentBuilds.data.length < limit || (offset-defaultOffset) >= maxJobNumber) {
       break;
     }
     await sleep(msec);
@@ -43,10 +39,10 @@ const fetchAllJobs = async ({ msec=100, maxJobNumber }) => {
 
 
 // example http://<SERVER_DOMAIN>/gh/circleci/test-project/13 => /gh/circleci/test-project/13
-const convertBuildUrlToBuildPath = (build_url) => build_url.split(process.env.CIRCLECI_HOST)[1];
+const convertBuildUrlToBuildPath = (build_url, baseHost) => build_url.split(baseHost)[1];
 
-const fetchAllJobDetails = async (recentBuilds, msec=100) => {
-  const buildPathList = recentBuilds.map(b => convertBuildUrlToBuildPath(b.build_url));
+const fetchAllJobDetails = async ({ client, recentBuilds, msec=100, baseHost }) => {
+  const buildPathList = recentBuilds.map(b => convertBuildUrlToBuildPath(b.build_url, baseHost));
   const jobDetails = [];
   for (const buildPath of buildPathList) {
     const jobDetail = await client.get(`/v1.1/project${buildPath}`, {timeout: 5000});
@@ -63,6 +59,9 @@ const parseArgumentsIntoOptions = rawArgs => {
     {
       '--limit': Number,
       '-l': '--limit',
+      '--offset': Number,
+      '--project': String,
+      '--server': Boolean,
     },
     {
       argv: rawArgs.slice(excludeNodeAndCommandPath),
@@ -71,19 +70,49 @@ const parseArgumentsIntoOptions = rawArgs => {
   );
   return {
     limit: args['--limit'] || 1000,
+    offset: args['--offset'] || 0,
+    projectSlug: args['--project'] || '',
+    isServer: args['--server'] || false,
   };
 };
 
-(async () => {
-  const { limit } = parseArgumentsIntoOptions(process.argv);
+// sample: github/circleci/test-project or bitbucket/circleci/test-project
+const validateProjectSlug = projectSlug => {
+  const values = projectSlug.split('/');
+  return values.length === 3 || !values.includes('') || ['github','bitbucket'].includes(values[0]);
+}
 
-  if (!['CIRCLECI_HOST', 'CIRCLECI_TOKEN'].every(key => Object.keys(process.env).includes(key))) {
-    throw new Error('Please set CIRCLECI_HOST and CIRCLECI_TOKEN as environment valiable');
+(async () => {
+  const { limit, offset, projectSlug, isServer } = parseArgumentsIntoOptions(process.argv);
+  const baseHost = process.env.CIRCLECI_HOST || 'https://circleci.com';
+
+  if (!['CIRCLECI_TOKEN'].every(key => Object.keys(process.env).includes(key))) {
+    throw new Error('Please set CIRCLECI_TOKEN as environment valiable');
   }
 
-  const recentBuilds = await fetchAllJobs({maxJobNumber: limit}); 
-  const jobDetails = await fetchAllJobDetails(recentBuilds);
+  if (projectSlug && !validateProjectSlug(projectSlug)) {
+    throw new Error(`--project value ${projectSlug} is worng, please set the right format <github or bitbucket>/<org>/<project>`);
+  }
+
+  const client = axios.create({
+    baseURL: `${baseHost}/api/`,
+    headers: {
+      'Content-Type': 'application/json',
+      'Circle-Token': `${process.env.CIRCLECI_TOKEN}`,
+      'Accept': 'application/json',
+    },
+    responseType: 'json',
+  });
+
+  const recentBuilds = await fetchAllJobs({
+    client,
+    maxJobNumber: limit,
+    defaultOffset: offset,
+    isServer,
+    projectSlug,
+  });
+
+  const jobDetails = await fetchAllJobDetails({ client, recentBuilds, baseHost });
   console.log(`The number of jobs: ${jobDetails.length}`);
   fs.writeFileSync('./jobs.json', JSON.stringify(jobDetails.map(j => j.data)));
 })();
-

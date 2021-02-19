@@ -6,7 +6,7 @@ This tool is for fetching all the job data under the CircleCI Server.
 
 ```
 $ node -v
-v12.18.4
+v14.13.0
 $ npm install
 ```
 
@@ -26,16 +26,25 @@ This script exports job data to `jobs.json` file. The default limit of job count
 $ npm start
 ```
 
-You can specify the limit of job count.
+## options
+
+| Options | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `--limit` or `-l` | `Number` | no | 1000 | The number of builds to return. |
+| `--offset` | `Number` | no | 0 | The API returns builds starting from this offset. |
+| `--project` | `string` | no | | The project slug which is to return specific project builds. Project slug in the form `<github or bitbucket>/org-name/repo-name` |
+| `--server` | `Boolean` | no | false | Use server admin endpoint `v1/admin/recent-builds` |
+
+## example
 
 ```
 $ npm start -- --limit=100
 or 
-$ npm start -- -l=100
+$ npm start -- -l 100
 ```
 
 ## run in docker 
 
 ```
-sudo docker run -it --rm -v `pwd`:/tmp node:12.18.4 bash -c 'cd /tmp && npm cache verify && npm install && npm start'
+sudo docker run -it --rm -v `pwd`:/tmp node:14.13.0 bash -c 'cd /tmp && npm cache verify && npm install && npm start'
 ```
