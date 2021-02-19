@@ -6,8 +6,11 @@
   "engines": {
     "node": "14.13.0"
   },
+  "bin": {
+    "cjc": "bin/cli"
+  },
   "scripts": {
-    "start": "babel-node index.js",
+    "fetch": "bin/cli fetch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -29,6 +32,7 @@
   "devDependencies": {
     "@babel/core": "^7.12.16",
     "@babel/node": "^7.12.16",
-    "@babel/preset-env": "^7.12.16"
+    "@babel/preset-env": "^7.12.16",
+    "esm": "^3.2.25"
   }
 }
