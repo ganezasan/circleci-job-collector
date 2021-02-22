@@ -5,47 +5,33 @@ import { HELP } from './lib/help';
 
 dotenv.config();
 
-const parseArgumentsIntoOptions = rawArgs => {
+const parseArgumentsIntoOptions = ({ rawArgs, classObj }) => {
+  const requiredArgs = classObj ? classObj.requiredArgs : { '--help': Boolean, '-h': '--help' };
+  const returnArgs = classObj ? classObj.returnArgs : () => {};
+
   const excludeNodeAndCommandPath = 2;
-  const args = arg(
-    {
-      '--help': Boolean,
-      '-h': '--help',
-      '--limit': Number,
-      '-l': '--limit',
-      '--offset': Number,
-      '--project': String,
-      '--server': Boolean,
-    },
+  const args = arg({ ...requiredArgs },
     {
       argv: rawArgs.slice(excludeNodeAndCommandPath),
       permissive: true,
     }
   );
   return {
-    limit: args['--limit'] || 1000,
-    offset: args['--offset'] || 0,
-    projectSlug: args['--project'] || '',
-    isServer: args['--server'] || false,
+    ...returnArgs(args),
     help: args['--help'] || false,
     command: args._[0],
   };
 };
 
-// sample: github/circleci/test-project or bitbucket/circleci/test-project
-const validateProjectSlug = projectSlug => {
-  const values = projectSlug.split('/');
-  return values.length === 3 || !values.includes('') || ['github','bitbucket'].includes(values[0]);
-}
-
-const runFetch = async ({ limit, offset, projectSlug, isServer }) => {
+const runFetch = async () => {
+  const { limit, offset, projectSlug, isServer } = parseArgumentsIntoOptions({ rawArgs: process.argv,  classObj: Fetch })
   const baseHost = process.env.CIRCLECI_HOST || 'https://circleci.com';
 
   if (!['CIRCLECI_TOKEN'].every(key => Object.keys(process.env).includes(key))) {
     throw new Error('Please set CIRCLECI_TOKEN as environment valiable');
   }
 
-  if (projectSlug && !validateProjectSlug(projectSlug)) {
+  if (projectSlug && ! Fetch.validateProjectSlug(projectSlug)) {
     throw new Error(`--project value ${projectSlug} is worng, please set the right format <github or bitbucket>/<org>/<project>`);
   }
   const fetch = new FetchJobs({ baseHost, token: process.env.CIRCLECI_TOKEN, limit, offset, isServer, projectSlug });
@@ -53,7 +39,7 @@ const runFetch = async ({ limit, offset, projectSlug, isServer }) => {
 }
 
 const cli = async () => {
-  const { command, help, ...args } = parseArgumentsIntoOptions(process.argv);
+  const { command, help } = parseArgumentsIntoOptions({ rawArgs: process.argv });
   const commands = {
     fetch: runFetch,
   };
@@ -61,7 +47,7 @@ const cli = async () => {
   if (help) {
     console.log(HELP.join(''));
   } else if (command && commands[command]) {
-    await commands[command](args);
+    await commands[command]();
   } else {
     console.log('No command available, please run `cjc --help` command');
   }
