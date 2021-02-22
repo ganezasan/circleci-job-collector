@@ -1,6 +1,7 @@
 import arg from 'arg';
 import dotenv from 'dotenv';
 import { FetchJobs } from './lib/fetchJobs';
+import { Convert } from './lib/convert';
 import { HELP } from './lib/help';
 
 dotenv.config();
@@ -38,10 +39,21 @@ const runFetch = async () => {
   await fetch.exec();
 }
 
+const runConvert = async () => {
+  const { jobName, workflowName, inputFilename, outputFilename } = parseArgumentsIntoOptions({ rawArgs: process.argv,  classObj: Convert })
+
+  if (!jobName || !workflowName) {
+    throw new Error(`This command requires --jobName and --workflowName options`);
+  }
+  const convert = new Convert({ jobName, workflowName, inputFilename, outputFilename });
+  await convert.exec();
+}
+
 const cli = async () => {
   const { command, help } = parseArgumentsIntoOptions({ rawArgs: process.argv });
   const commands = {
     fetch: runFetch,
+    convert: runConvert
   };
 
   if (help) {

@@ -1,4 +1,7 @@
 .env
 node_modules
-jobs.json
 .v8flags-*.json
+
+# output
+jobs.json
+summary.csv
