@@ -124,6 +124,31 @@ JOB URL: https://circleci.com/gh/ganezasan/ci-test/1
 | `--stepName` | `string` | no |  | The step name for filtering steps. Default is showing all steps. |
 
 
+## showSteps
+
+This command shows a job's step's name and number.
+
+```
+cjc showSteps --jobSlug=gh/ganezasan/circleci-demo-ios/149
+0: Spin up environment
+1: Preparing environment variables
+2: Checkout code
+3: Restoring cache
+4: Install gems with Bundler
+5: Saving cache
+6: pre-start simulator
+7: Fastlane
+8: Uploading artifacts
+9: Uploading test results
+10: Upload Coverage Results
+ ```
+
+ ### showSteps options
+
+| Options | Type | Required | Default | Description |
+|-----------------|------|----------|---------|-------------|
+| `--jobSlug` | `string` | yes |  | The job slug which is to return specific job. Job slug in the form `<github or bitbucket>/org-name/repo-name/job-number` |
+
 # run in docker
 
 ```

@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { FetchJobs } from './lib/fetchJobs';
 import { Convert } from './lib/convert';
 import { ShowTiming } from './lib/showTiming';
+import { ShowSteps } from './lib/showSteps';
 import { HELP } from './lib/help';
 
 dotenv.config();
@@ -61,12 +62,23 @@ const runShowTiming = async () => {
   await showTiming.exec();
 }
 
+const runShowSteps = async () => {
+  const { jobSlug } = parseArgumentsIntoOptions({ rawArgs: process.argv,  classObj: ShowSteps })
+
+  if (!jobSlug) {
+    throw new Error(`This command requires --jobSlug`);
+  }
+  const showSteps = new ShowSteps({ jobSlug, baseHost, token: process.env.CIRCLECI_TOKEN });
+  await showSteps.exec();
+}
+
 const cli = async () => {
   const { command, help } = parseArgumentsIntoOptions({ rawArgs: process.argv });
   const commands = {
     fetch: runFetch,
     convert: runConvert,
-    showTiming: runShowTiming
+    showTiming: runShowTiming,
+    showSteps: runShowSteps
   };
 
   if (help) {
