@@ -2,6 +2,7 @@ import arg from 'arg';
 import dotenv from 'dotenv';
 import { FetchJobs } from './lib/fetchJobs';
 import { Convert } from './lib/convert';
+import { ShowTiming } from './lib/showTiming';
 import { HELP } from './lib/help';
 
 dotenv.config();
@@ -24,9 +25,10 @@ const parseArgumentsIntoOptions = ({ rawArgs, classObj }) => {
   };
 };
 
+const baseHost = process.env.CIRCLECI_HOST || 'https://circleci.com';
+
 const runFetch = async () => {
   const { limit, offset, projectSlug, isServer } = parseArgumentsIntoOptions({ rawArgs: process.argv,  classObj: Fetch })
-  const baseHost = process.env.CIRCLECI_HOST || 'https://circleci.com';
 
   if (!['CIRCLECI_TOKEN'].every(key => Object.keys(process.env).includes(key))) {
     throw new Error('Please set CIRCLECI_TOKEN as environment valiable');
@@ -49,11 +51,22 @@ const runConvert = async () => {
   await convert.exec();
 }
 
+const runShowTiming = async () => {
+  const { jobSlug, stepName } = parseArgumentsIntoOptions({ rawArgs: process.argv,  classObj: ShowTiming })
+
+  if (!jobSlug) {
+    throw new Error(`This command requires --jobSlug`);
+  }
+  const showTiming = new ShowTiming({ jobSlug, stepName, baseHost, token: process.env.CIRCLECI_TOKEN });
+  await showTiming.exec();
+}
+
 const cli = async () => {
   const { command, help } = parseArgumentsIntoOptions({ rawArgs: process.argv });
   const commands = {
     fetch: runFetch,
-    convert: runConvert
+    convert: runConvert,
+    showTiming: runShowTiming
   };
 
   if (help) {
