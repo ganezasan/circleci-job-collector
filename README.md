@@ -122,6 +122,7 @@ JOB URL: https://circleci.com/gh/ganezasan/ci-test/1
 |-----------------|------|----------|---------|-------------|
 | `--jobSlug` | `string` | yes |  | The job slug which is to return specific job. Job slug in the form `<github or bitbucket>/org-name/repo-name/job-number` |
 | `--stepName` | `string` | no |  | The step name for filtering steps. Default is showing all steps. |
+| `--stepNumber` | `number` | no |  | The step number for filtering steps. Default is showing all steps. |
 
 
 ## showSteps

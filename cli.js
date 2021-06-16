@@ -53,12 +53,17 @@ const runConvert = async () => {
 }
 
 const runShowTiming = async () => {
-  const { jobSlug, stepName } = parseArgumentsIntoOptions({ rawArgs: process.argv,  classObj: ShowTiming })
+  const { jobSlug, stepNumber, stepName } = parseArgumentsIntoOptions({ rawArgs: process.argv,  classObj: ShowTiming })
 
   if (!jobSlug) {
     throw new Error(`This command requires --jobSlug`);
   }
-  const showTiming = new ShowTiming({ jobSlug, stepName, baseHost, token: process.env.CIRCLECI_TOKEN });
+
+  if (stepNumber >= 0 && stepName) {
+    throw new Error(`This command requires to specify only one of --stepNumber or --stepName`);
+  }
+
+  const showTiming = new ShowTiming({ jobSlug, stepName, stepNumber, baseHost, token: process.env.CIRCLECI_TOKEN });
   await showTiming.exec();
 }
 
