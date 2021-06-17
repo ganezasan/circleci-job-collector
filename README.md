@@ -98,7 +98,7 @@ $ cjc convert --workflowName=workflow --jobName=build
 This command shows a job's running time with bar chart. This is useful to visualize the execution time for each step when using parallelism in a job.
 
 ```
-cjc showTiming --jobSlug=gh/ganezasan/ci-test/1 --stepName='Run Jest Test'
+$ cjc showTiming --jobSlug=gh/ganezasan/ci-test/1 --stepName='Run Jest Test'
 Step: Run Jest Test
 API URL: https://circleci.com/api/v1.1/project/gh/ganezasan/ci-test/1
 JOB URL: https://circleci.com/gh/ganezasan/ci-test/1
@@ -130,7 +130,7 @@ JOB URL: https://circleci.com/gh/ganezasan/ci-test/1
 This command shows a job's step's name and number.
 
 ```
-cjc showSteps --jobSlug=gh/ganezasan/circleci-demo-ios/149
+$ cjc showSteps --jobSlug=gh/ganezasan/circleci-demo-ios/149
 0: Spin up environment
 1: Preparing environment variables
 2: Checkout code
