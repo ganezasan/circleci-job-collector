@@ -29,13 +29,13 @@ const parseArgumentsIntoOptions = ({ rawArgs, classObj }) => {
 const baseHost = process.env.CIRCLECI_HOST || 'https://circleci.com';
 
 const runFetch = async () => {
-  const { limit, offset, projectSlug, isServer } = parseArgumentsIntoOptions({ rawArgs: process.argv,  classObj: Fetch })
+  const { limit, offset, projectSlug, isServer } = parseArgumentsIntoOptions({ rawArgs: process.argv,  classObj: FetchJobs })
 
   if (!['CIRCLECI_TOKEN'].every(key => Object.keys(process.env).includes(key))) {
     throw new Error('Please set CIRCLECI_TOKEN as environment valiable');
   }
 
-  if (projectSlug && ! Fetch.validateProjectSlug(projectSlug)) {
+  if (projectSlug && ! FetchJobs.validateProjectSlug(projectSlug)) {
     throw new Error(`--project value ${projectSlug} is worng, please set the right format <github or bitbucket>/<org>/<project>`);
   }
   const fetch = new FetchJobs({ baseHost, token: process.env.CIRCLECI_TOKEN, limit, offset, isServer, projectSlug });
